@@ -1,0 +1,22 @@
+{
+    "name": "ashatrov/psr7-string-stream-decorator",
+    "description": "PSR-7 decorator for StringStream",
+    "license": "Private",
+    "authors": [
+        {
+            "name": "Shatrov Aleksej",
+            "email": "mail@ashatrov.ru"
+        }
+    ],
+	"minimum-stability" : "dev" ,
+	"version" : "1.0.5" ,
+    "require": {
+        "php-extended/php-http-message-psr7": "^2.0"
+    } ,
+    "autoload" : {
+		"psr-0" : {
+			"ashatrov\\Psr7\\StringStreamDecorator" : "."
+		} ,
+		"classmap": [ "StringStreamDecorator.php" , "CipherFilter.php" ]
+    }
+}
