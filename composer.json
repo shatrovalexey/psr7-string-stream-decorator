@@ -10,10 +10,7 @@
     ],
 	"minimum-stability" : "dev" ,
 	"version" : "1.0.5" ,
-    "require": {
-        "php-extended/php-http-message-psr7": "^2.0"
-    } ,
-    "autoload" : {
+	"autoload" : {
 		"psr-0" : {
 			"ashatrov\\Psr7\\StringStreamDecorator" : "."
 		} ,
