@@ -74,51 +74,52 @@ Then combine everything in one piece.
 
 ### EXAMPLE
 ```
+require_once( 'vendor/autoload.php' ) ;
+
 use ashatrov\Psr7\StringStreamDecorator\StringStreamDecorator ;
 
 /**
-* @var resource $inp - input stream
+* StringStreamDecorator can receive as a resource and a string reference in the first argument
 */
-$inp = fopen( '../composer.json' , 'rb' ) ;
+// $inp = fopen( 'composer.json' , 'rb' ) ;
+$inp = '{
+    "name": "ashatrov/psr7-string-stream-decorator",
+    "description": "PSR-7 decorator for StringStream",
+    "license": "Private",
+    "authors": [
+        {
+            "name": "Shatrov Aleksej",
+            "email": "mail@ashatrov.ru"
+        }
+    ],
+	"minimum-stability" : "dev" ,
+	"version" : "1.0.5" ,
+	"autoload" : {
+		"psr-0" : {
+			"ashatrov\\Psr7\\StringStreamDecorator" : "."
+		} ,
+		"classmap": [ "StringStreamDecorator.php" , "CipherFilter.php" ]
+    }
+}' ;
+$out = fopen( 'out.txt' , 'wb' ) ;
 
-/**
-* @var resource $out - output stream
-*/
-$out = fopen( '../out.txt' , 'wb' ) ;
-
-/**
-* @var ashatrov\Psr7\StringStreamDecorator\StringStreamDecorator $ssdh - decorator for stream
-*/
 $ssdh = new StringStreamDecorator( $inp ) ;
-
-/**
-* @var string $encryption_key - generated password
-*/
 $encryption_key = $ssdh->encryption_key( ) ;
 
-/**
-* encrypting $inp to $out with default 'aes-256-cbc' encryption
-*/
-$ssdh->encrypt( $out ) ;
+// Copy encrypted data into output resource handle
+// $ssdh->encrypt( $out ) ;
 
-/**
-* @var resource $inp - input stream
-*/
-$inp = fopen( '../out.txt' , 'rb' ) ;
+// When encrypt has no aurguments then you can use it result as file handle
+$out2 = $ssdh->encrypt( ) ;
 
-/**
-* @var resource $out - output stream
-*/
-$out = fopen( '../inp.txt' , 'wb' ) ;
+while ( $data = fread( $out2 , 0x400 ) ) {
+	// ... do something with encrypted data
+}
 
-/**
-* @var ashatrov\Psr7\StringStreamDecorator\StringStreamDecorator $ssdh - decorator for stream
-*/
+$inp = fopen( 'out.txt' , 'rb' ) ;
+$out = fopen( 'inp.txt' , 'wb' ) ;
+
 $ssdh = new StringStreamDecorator( $inp , $encryption_key ) ;
-
-/**
-* decrypting $inp to $out with default 'aes-256-cbc' encryption
-*/
 $ssdh->decrypt( $out ) ;
 ```
 

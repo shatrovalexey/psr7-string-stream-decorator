@@ -42,15 +42,36 @@ class StringStreamDecorator {
 	/**
 	* constructor
 	*
-	* @param resource $inp_stream - input stream
+	* @param resource|string $inp_stream - input stream or string
 	* @param string $encryption_key - encryption key (pasword)
 	* @param string $algorithm - algorithm name
 	*/
-	public function __construct( $inp_stream , string $encryption_key = null , $algorithm = self::ALGORITHM_DEFAULT ) {
-		$this->_inp_stream = $inp_stream ;
+	public function __construct( &$inp_stream , string $encryption_key = null , $algorithm = self::ALGORITHM_DEFAULT ) {
+		$this->_inp_stream = static::to_stream( $inp_stream ) ;
 		$this->_encryption_key = $encryption_key ;
 		$this->_algorithm = $algorithm ;
 		$this->_filtername = sha1( static::class ) ;
+	}
+
+	/**
+	* converts string to file handle when $inp has type of string
+	*
+	* @param resource|string $inp - input stream of string
+	*
+	* @return resource
+	*/
+	protected static function to_stream( &$inp ) {
+		if ( is_resource( $inp ) ) {
+			return $inp ;
+		}
+
+		$tmpfh = tmpfile( ) ;
+		fwrite( $tmpfh , $inp ) ;
+		fseek( $tmpfh , 0 , \SEEK_SET ) ;
+
+		$inp = $tmpfh ;
+
+		return $inp ;
 	}
 
 	/**
@@ -103,10 +124,18 @@ class StringStreamDecorator {
 	*
 	* @param resource $out_stream - output stream
 	*
-	* @return boolean - true when success
+	* @return resource - output stream
 	*/
-	protected function copy_to( $out_stream ) {
-		return stream_copy_to_stream( $this->_inp_stream , $out_stream ) ;
+	protected function copy_to( $out ) {
+		stream_copy_to_stream( $this->_inp_stream , $out ) ;
+
+		// when output stream is seekable
+		@fseek( $out , 0 , \SEEK_SET ) ;
+
+		// when input stream is seekable
+		@fseek( $this->_inp_stream , 0 , \SEEK_SET ) ;
+
+		return $out ;
 	}
 
 	/**
@@ -132,7 +161,7 @@ class StringStreamDecorator {
 			return $this->_encryption_key ;
 		}
 		if ( is_null( $this->_encryption_key ) ) {
-			$this->_encryption_key = CipherFilter::encryption_key( ) ;
+			$this->_encryption_key = CipherFilter::get_encryption_key( ) ;
 		}
 
 		return $this->_encryption_key ;

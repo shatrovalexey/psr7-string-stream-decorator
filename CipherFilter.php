@@ -53,6 +53,15 @@ class CipherFilter extends \PHP_User_Filter {
 	protected $is_decrypt ;
 
 	/**
+	* Available encryption methods
+	*
+	* @return array - list of methods
+	*/
+	public static function methods_available( ) {
+		return openssl_get_cipher_methods( ) ;
+	}
+
+	/**
 	* Initialization
 	*
 	* @throws \Exception - an exception when error arguments passed
@@ -66,10 +75,7 @@ class CipherFilter extends \PHP_User_Filter {
 		if ( ! isset( $this->params[ 'encryption_key' ] ) || ! mb_strlen( $this->params[ 'encryption_key' ] ) ) {
 			throw new \Exception( 'Param "encryption_key" is empty' ) ;
 		}
-		if ( ! isset( $this->params[ 'algorithm' ] ) ) {
-			throw new \Exception( 'Param "algorithm" is empty' ) ;
-		}
-		if ( ! in_array( $this->params[ 'algorithm' ] , openssl_get_cipher_methods( ) ) ) {
+		if ( ! in_array( @$this->params[ 'algorithm' ] , static::methods_available( ) ) ) {
 			throw new \Exception( 'Algorithm "' . $this->params[ 'algorithm' ] . '" not supported' ) ;
 		}
 
@@ -116,7 +122,7 @@ class CipherFilter extends \PHP_User_Filter {
 	*
 	* @return string - encryption key
 	*/
-	public static function encryption_key( ) {
+	public static function get_encryption_key( ) {
 		return sha1( uniqid( ) ) ;
 	}
  
@@ -142,13 +148,13 @@ class CipherFilter extends \PHP_User_Filter {
 			$this->_data .= $bucket->data ;
 			$this->bucket = $bucket ;
 		}
-		if ( empty( $closing ) ) {
+		if ( empty( $closing ) || empty( $this->bucket ) ) {
 			return \PSFS_FEED_ME ;
 		}
 
 		$consumed += mb_strlen( $this->_data ) ;
 
-		// Enryption\decryption
+		// enryption\decryption
 		$this->bucket->data = ( $this->method )( $this->_data , $this->algorithm , $this->encryption_key , 0 , $this->iv ) ;
 
 		if ( $this->is_decrypt ) {
